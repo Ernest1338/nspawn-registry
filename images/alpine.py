@@ -2,69 +2,58 @@
 
 import sys
 import os
+import tempfile
 
 if os.getuid() != 0:
     print("Run this script as root")
     exit(1)
 
-if len(sys.argv) != 2:
-    print(f"Usage: {sys.argv[0]} <destination>")
-
 MIRROR = "http://dl-cdn.alpinelinux.org/alpine"
 VERSION = "latest-stable"
 APKTOOLS_VERSION = "2.14.0-r5"
-DESTINATION = sys.argv[1]
+GUESTARCH = "x86"
+CHANNEL = "main"
+DESTINATION = sys.argv[1] if len(sys.argv) > 1 else "alpine-linux-image"
 
-# #!/bin/bash -e
-# # Creates a systemd-nspawn container with Alpine
-#
-# MIRROR=http://dl-cdn.alpinelinux.org/alpine
-# # VERSION=${VERSION:-v3.19}
-# VERSION="latest-stable"
-# APKTOOLS_VERSION=2.14.0-r5
-#
-#
-# if [ $UID -ne 0 ]; then
-# 	echo "run this script as root" >&2
-# 	exit 1
-# fi
-#
-# if [ -z "$1" ]; then
-# 	echo "Usage: $0 <destination>" >&2
-# 	exit 0
-# fi
-#
-# dest="$1"
-# apkdir=$(mktemp -d)
-# guestarch=x86
-# [ "$(uname -m)" == x86_64 ] && guestarch=x86_64
-# trap 'rm -r $apkdir' EXIT
-#
-# wget -qO- $MIRROR/latest-stable/main/x86/apk-tools-static-$APKTOOLS_VERSION.apk \
-# 	| tar -xz -C $apkdir || \
-# 	{ echo "Couldn't download apk-tools, the version might have changed..."; exit 1; }
-#
-# $apkdir/sbin/apk.static \
-# 	-X $MIRROR/$VERSION/main -U --arch $guestarch \
-# 	--allow-untrusted --root "$dest" \
-# 	--initdb add alpine-base
-#
-# mkdir -p "$dest"/{etc/apk,root}
-# printf '%s/%s/main\n' $MIRROR $VERSION >"$dest"/etc/apk/repositories
-# for i in $(seq 0 10); do # https://github.com/systemd/systemd/issues/852
-# 	echo "pts/$i" >>"$dest/etc/securetty"
-# done
-# # make console work
-# sed '/tty[0-9]:/ s/^/#/' -i "$dest"/etc/inittab
-# printf 'console::respawn:/sbin/getty 38400 console\n' >>"$dest"/etc/inittab
-# # minimal boot services
-# for s in hostname bootmisc syslog; do
-# 	ln -s /etc/init.d/$s "$dest"/etc/runlevels/boot/$s
-# done
-# for s in killprocs savecache; do
-# 	ln -s /etc/init.d/$s "$dest"/etc/runlevels/shutdown/$s
-# done
-#
-#
-# echo ""
-# echo "Alpine $VERSION container was created successfully."
+dir = tempfile.TemporaryDirectory(prefix="nspawn-registry-", dir="/tmp")
+
+os.system(
+    f'wget -qO- {MIRROR}/{VERSION}/{CHANNEL}/{GUESTARCH}/apk-tools-static-{APKTOOLS_VERSION}.apk \
+| tar -xz -C {dir.name} || \
+{{ echo "Couldnt download apk-tools, the version might have changed..."; exit 1; }}'
+)
+
+os.system(
+    f'{dir.name}/sbin/apk.static \
+-X {MIRROR}/{VERSION}/{CHANNEL} -U --arch {GUESTARCH} \
+--allow-untrusted --root "{DESTINATION}" \
+--initdb add alpine-base'
+)
+
+os.system(f'mkdir -p "{DESTINATION}"/{{etc/apk,root}}')
+
+os.system(
+    f'printf "%s/%s/{CHANNEL}\n" {MIRROR} {VERSION} >"{DESTINATION}"/etc/apk/repositories'
+)
+
+# https://github.com/systemd/systemd/issues/852
+for i in range(0, 10):
+    os.system(f'echo "pts/{i}" >> "{DESTINATION}/etc/securetty"')
+
+# make console work
+os.system(f'sed "/tty[0-9]:/ s/^/#/" -i "{DESTINATION}"/etc/inittab')
+
+os.system(
+    f'printf "console::respawn:/sbin/getty 38400 console\n" >> "{DESTINATION}"/etc/inittab'
+)
+
+for s in ["hostname", "bootmisc", "syslog"]:
+    os.system(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/boot/{s}')
+
+
+for s in ["killprocs", "savecache"]:
+    os.system(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/shutdown/{s}')
+
+print(f"[+] Successfully built alpine {VERSION} at: {DESTINATION}")
+
+dir.cleanup()
