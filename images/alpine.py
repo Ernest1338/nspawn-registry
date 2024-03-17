@@ -4,6 +4,7 @@ import sys
 import os
 import tempfile
 
+# NOTE: maybe there is a way to not require root? (the apk.static exec requires it)
 if os.getuid() != 0:
     print("Run this script as root")
     exit(1)
@@ -15,6 +16,12 @@ GUESTARCH = "x86"
 CHANNEL = "main"
 DESTINATION = sys.argv[1] if len(sys.argv) > 1 else "alpine-linux-image"
 
+
+def execute(cmd):
+    print(f"[$] Executing: {cmd}")
+    os.system(cmd)
+
+
 dir = tempfile.TemporaryDirectory(prefix="nspawn-registry-", dir="/tmp")
 
 os.system(
@@ -23,37 +30,37 @@ os.system(
 {{ echo "Couldnt download apk-tools, the version might have changed..."; exit 1; }}'
 )
 
-os.system(
+execute(
     f'{dir.name}/sbin/apk.static \
 -X {MIRROR}/{VERSION}/{CHANNEL} -U --arch {GUESTARCH} \
 --allow-untrusted --root "{DESTINATION}" \
 --initdb add alpine-base'
 )
 
-os.system(f'mkdir -p "{DESTINATION}"/{{etc/apk,root}}')
+execute(f'mkdir -p "{DESTINATION}"/{{etc/apk,root}}')
 
-os.system(
+execute(
     f'printf "%s/%s/{CHANNEL}\n" {MIRROR} {VERSION} >"{DESTINATION}"/etc/apk/repositories'
 )
 
 # https://github.com/systemd/systemd/issues/852
 for i in range(0, 10):
-    os.system(f'echo "pts/{i}" >> "{DESTINATION}/etc/securetty"')
+    execute(f'echo "pts/{i}" >> "{DESTINATION}/etc/securetty"')
 
 # make console work
-os.system(f'sed "/tty[0-9]:/ s/^/#/" -i "{DESTINATION}"/etc/inittab')
+execute(f'sed "/tty[0-9]:/ s/^/#/" -i "{DESTINATION}"/etc/inittab')
 
-os.system(
+execute(
     f'printf "console::respawn:/sbin/getty 38400 console\n" >> "{DESTINATION}"/etc/inittab'
 )
 
 for s in ["hostname", "bootmisc", "syslog"]:
-    os.system(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/boot/{s}')
+    execute(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/boot/{s}')
 
 
 for s in ["killprocs", "savecache"]:
-    os.system(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/shutdown/{s}')
+    execute(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/shutdown/{s}')
 
-print(f"[+] Successfully built alpine {VERSION} at: {DESTINATION}")
+print(f"\n[+] Successfully built alpine {VERSION} at: {DESTINATION}")
 
 dir.cleanup()
