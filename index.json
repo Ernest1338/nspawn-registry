@@ -1,0 +1,27 @@
+[
+  {
+    "name": "alpine",
+    "version": "1.0",
+    "url": "http://example.com/"
+  },
+  {
+    "name": "arch",
+    "version": "1.0",
+    "url": "http://example.com/"
+  },
+  {
+    "name": "debian",
+    "version": "1.0",
+    "url": "http://example.com/"
+  },
+  {
+    "name": "ubuntu",
+    "version": "1.0",
+    "url": "http://example.com/"
+  },
+  {
+    "name": "nginx",
+    "version": "1.0",
+    "url": "http://example.com/"
+  }
+]
