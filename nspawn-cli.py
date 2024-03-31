@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import sys
-
-# DEPENDENCIES: requests
+import argparse
+import json
 
 import urllib.request
 
 # urllib.request.urlopen
 # urllib.request.urlretrieve
+
 
 HELP_SCREEN = f"""\
 Usage: {sys.argv[0]} [SUBCOMMAND] [OPTIONS]
@@ -25,15 +26,14 @@ if len(sys.argv) < 2:
     exit(1)
 
 
-def image_list():
-    # TODO: grab from the "index.json" from main branch
-    return [
-        ("alpine", 1.0),
-        ("arch", 1.0),
-        ("debian", 1.0),
-        ("ubuntu", 1.0),
-        ("nginx", 1.0),
-    ]
+def get_image_index():
+    return json.loads(
+        urllib.request.urlopen(
+            "https://raw.githubusercontent.com/Ernest1338/nspawn-registry/main/index.json"
+        )
+        .read()
+        .decode()
+    )
 
 
 def command_pull():
@@ -45,19 +45,35 @@ def command_new():
 
 
 def command_list():
-    pass
+    images = get_image_index()
+    for image in images:
+        name = image["name"]
+        version = image["version"]
+        print(f"{name} (v{version})")
 
 
 def main():
-    match sys.argv[1]:
-        case "pull":
-            command_pull()
-        case "new":
-            command_new()
-        case "list":
-            command_list()
-        case _:
-            print("Incorrect subcommand. Check --help")
+    parser = argparse.ArgumentParser(
+        prog="nspawn-cli",
+        description="systemd-nspawn registry CLI",
+    )
+
+    subparsers = parser.add_subparsers(title="Subcommands", dest="subcommands")
+
+    subcom_pull = subparsers.add_parser("pull")
+    subcom_new = subparsers.add_parser("new")
+    subcom_list = subparsers.add_parser("list")
+
+    args = parser.parse_args()
+
+    if args.subcommands == "pull":
+        command_pull()
+    elif args.subcommands == "new":
+        command_new()
+    elif args.subcommands == "list":
+        command_list()
+    else:
+        parser.print_usage()
 
 
 if __name__ == "__main__":
