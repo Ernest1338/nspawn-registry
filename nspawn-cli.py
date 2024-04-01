@@ -4,7 +4,6 @@ import argparse
 import json
 import os
 import tarfile
-import shutil
 
 import urllib.request
 
@@ -63,16 +62,19 @@ def command_pull(image_name: str):
         print(f"[!] ERROR: Image not found: {image_name}")
         exit(1)
 
+    # append .tar.gz from here on
+    image_name = f"{image_name}.tar.gz"
+
     pull_path = os.path.join(IMAGES_SAVE_DIR, image_name)
 
     if os.path.exists(pull_path):
         print("[!] Image already exists. Updating...")
-        shutil.rmtree(pull_path)
+        os.remove(pull_path)
 
     print(f"[+] Pulling image: '{image_name}' into '{IMAGES_SAVE_DIR}/{image_name}'")
 
     try:
-        urllib.request.urlretrieve(url=image["url"], filename=f"{pull_path}.tar.gz")[0]
+        urllib.request.urlretrieve(url=image["url"], filename=f"{pull_path}")[0]
     except:
         print("[!] ERROR: Retrieving image")
 
@@ -98,6 +100,19 @@ def command_new(image_name: str, new_image_path: str):
         exit(1)
 
 
+def command_rm(image_name: str):
+    pulled_images = PulledImages()
+    image = pulled_images.get_image_path(image_name)
+
+    if image is None:
+        print("[!] ERROR: Image not pulled")
+        exit(1)
+
+    image_path = pulled_images.get_image_path(image_name)
+    print(f"[+] Removing image: '{image_name}' at '{image_path}'")
+    os.remove(image_path)
+
+
 def command_list():
     index = ImageIndex()
     pulled_images = PulledImages()
@@ -116,16 +131,21 @@ def main():
 
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommands")
 
-    subcom_pull = subparsers.add_parser("pull")
+    subcom_pull = subparsers.add_parser(
+        "pull", help=f"Pull image into {IMAGES_SAVE_DIR}"
+    )
     subcom_pull.add_argument("image_name")
 
-    subcom_new = subparsers.add_parser("new")
+    subcom_new = subparsers.add_parser("new", help="Instantiate new image at give path")
     subcom_new.add_argument("image_name")
     subcom_new.add_argument("path", nargs="?")
 
-    subparsers.add_parser("list")
+    subcom_rm = subparsers.add_parser(
+        "rm", help="Remove given image from local registry"
+    )
+    subcom_rm.add_argument("image_name")
 
-    # TODO: subcommand: remove image
+    subparsers.add_parser("list")
 
     args = parser.parse_args()
 
@@ -133,6 +153,8 @@ def main():
         command_pull(args.image_name)
     elif args.subcommands == "new":
         command_new(args.image_name, args.path)
+    elif args.subcommands == "rm":
+        command_rm(args.image_name)
     elif args.subcommands == "list":
         command_list()
     else:
