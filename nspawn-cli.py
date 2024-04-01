@@ -2,10 +2,15 @@
 
 import argparse
 import json
+import os
+
 import urllib.request
 
 # urllib.request.urlopen
 # urllib.request.urlretrieve
+
+HOME = os.path.expanduser("~")
+IMAGES_SAVE_DIR = os.path.join(HOME, ".local", "share", "nspawn-images")
 
 
 def get_image_index():
@@ -19,7 +24,8 @@ def get_image_index():
 
 
 def command_pull():
-    pass
+    if not os.path.exists(IMAGES_SAVE_DIR):
+        os.makedirs(IMAGES_SAVE_DIR)
 
 
 def command_new():
