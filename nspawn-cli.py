@@ -46,6 +46,14 @@ class PulledImages:
                 return f"{IMAGES_SAVE_DIR}/{filename}"
         return None
 
+    def get_image_version(self, image_name: str):
+        for filename in self.images:
+            filename = filename.replace(".tar.gz", "")  # remove suffix
+            local_image_name = filename.split("-")[0]
+            if image_name == local_image_name:
+                return filename.split("-")[1]
+        return None
+
     def is_pulled(self, image_name: str) -> bool:
         return self.get_image_path(image_name) is not None
 
@@ -67,9 +75,14 @@ def command_pull(image_name: str):
 
     pull_path = os.path.join(IMAGES_SAVE_DIR, image_file)
 
-    if os.path.exists(pull_path):
-        print("[!] Image already exists. Updating...")
-        os.remove(pull_path)
+    pulled_images = PulledImages()
+    if pulled_images.is_pulled(image_name):
+        if os.path.exists(pull_path):
+            print("[+] Up-to-date image already pulled")
+            exit(0)
+        else:
+            print("[+] Image already exists. Updating instead...")
+            os.remove(pulled_images.get_image_path(image_name))
 
     print(f"[+] Pulling image: '{image_name}' into '{pull_path}'")
 
@@ -122,8 +135,12 @@ def command_list():
     for image in index.get_images():
         name = image["name"]
         version = image["version"]
-        pulled = " [pulled]" if pulled_images.is_pulled(name) else ""
-        print(f"{name} (v{version}){pulled}")
+        pulled = (
+            f"\t[pulled v{pulled_images.get_image_version(name)}]"
+            if pulled_images.is_pulled(name)
+            else ""
+        )
+        print(f"{name}\t(v{version}){pulled}")
 
 
 def main():
