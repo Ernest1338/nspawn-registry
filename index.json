@@ -2,26 +2,26 @@
   {
     "name": "alpine",
     "version": "1.0",
-    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
+    "url": "http://localhost:8080/alpine.tar.gz"
   },
   {
     "name": "arch",
     "version": "1.0",
-    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
+    "url": "http://localhost:8080/alpine.tar.gz"
   },
   {
     "name": "debian",
     "version": "1.0",
-    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
+    "url": "http://localhost:8080/alpine.tar.gz"
   },
   {
     "name": "ubuntu",
     "version": "1.0",
-    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
+    "url": "http://localhost:8080/alpine.tar.gz"
   },
   {
     "name": "nginx",
     "version": "1.0",
-    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
+    "url": "http://localhost:8080/alpine.tar.gz"
   }
 ]
