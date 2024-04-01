@@ -1,29 +1,11 @@
 #!/usr/bin/env python3
 
-import sys
 import argparse
 import json
-
 import urllib.request
 
 # urllib.request.urlopen
 # urllib.request.urlretrieve
-
-
-HELP_SCREEN = f"""\
-Usage: {sys.argv[0]} [SUBCOMMAND] [OPTIONS]
-
-Subcommands:
-    run <IMAGE> [NAME] - Run a container image
-        HELP FOR RUN
-    pull <IMAGE> [PATH] - Pull base image
-        OPTIONAL WHERE TO PULL
-    list - List available base images
-"""
-
-if len(sys.argv) < 2:
-    print("ERROR: Subcommand not provided. Check --help")
-    exit(1)
 
 
 def get_image_index():
