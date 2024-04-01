@@ -7,8 +7,6 @@ import tarfile
 
 import urllib.request
 
-# TODO: handle image versions
-
 HOME = os.path.expanduser("~")
 IMAGES_SAVE_DIR = os.path.join(HOME, ".local", "share", "nspawn-images")
 
@@ -43,7 +41,8 @@ class PulledImages:
 
     def get_image_path(self, image_name: str):
         for filename in self.images:
-            if image_name in filename:
+            local_image_name = filename.split("-")[0]
+            if image_name == local_image_name:
                 return f"{IMAGES_SAVE_DIR}/{filename}"
         return None
 
@@ -62,19 +61,20 @@ def command_pull(image_name: str):
         print(f"[!] ERROR: Image not found: {image_name}")
         exit(1)
 
-    # append .tar.gz from here on
-    image_name = f"{image_name}.tar.gz"
+    image_version = image["version"]
 
-    pull_path = os.path.join(IMAGES_SAVE_DIR, image_name)
+    image_file = f"{image_name}-{image_version}.tar.gz"
+
+    pull_path = os.path.join(IMAGES_SAVE_DIR, image_file)
 
     if os.path.exists(pull_path):
         print("[!] Image already exists. Updating...")
         os.remove(pull_path)
 
-    print(f"[+] Pulling image: '{image_name}' into '{IMAGES_SAVE_DIR}/{image_name}'")
+    print(f"[+] Pulling image: '{image_name}' into '{pull_path}'")
 
     try:
-        urllib.request.urlretrieve(url=image["url"], filename=f"{pull_path}")[0]
+        urllib.request.urlretrieve(url=image["url"], filename=f"{pull_path}")
     except:
         print("[!] ERROR: Retrieving image")
 
@@ -84,11 +84,15 @@ def command_new(image_name: str, new_image_path: str):
     image_path = pulled_images.get_image_path(image_name)
 
     if image_path is None:
-        print(f"[!] ERROR: Image not pulled: {image_name}")
+        print(f"[!] ERROR: Image not pulled: '{image_name}'")
         exit(1)
 
     if new_image_path is None:
         new_image_path = image_name
+
+    if os.path.exists(new_image_path):
+        print(f"[!] ERROR: Directory '{new_image_path}' already exists")
+        exit(1)
 
     print(f"[+] Creating new instance of '{image_name}' at '{new_image_path}'")
 
@@ -102,13 +106,12 @@ def command_new(image_name: str, new_image_path: str):
 
 def command_rm(image_name: str):
     pulled_images = PulledImages()
-    image = pulled_images.get_image_path(image_name)
+    image_path = pulled_images.get_image_path(image_name)
 
-    if image is None:
-        print("[!] ERROR: Image not pulled")
+    if image_path is None:
+        print(f"[!] ERROR: Image not pulled: '{image_name}'")
         exit(1)
 
-    image_path = pulled_images.get_image_path(image_name)
     print(f"[+] Removing image: '{image_name}' at '{image_path}'")
     os.remove(image_path)
 
