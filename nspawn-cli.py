@@ -35,12 +35,21 @@ class ImageIndex:
         return None
 
 
-def get_pulled_images():
-    images = []
-    for subdir, dirs, files in os.walk(IMAGES_SAVE_DIR):
-        for dir in dirs:
-            images.append(dir)
-    return images
+class PulledImages:
+    def __init__(self):
+        self.images = []
+        for subdir, dirs, files in os.walk(IMAGES_SAVE_DIR):
+            for file in files:
+                self.images.append(file)
+
+    def get_image_path(self, image_name: str):
+        for filename in self.images:
+            if image_name in filename:
+                return f"{IMAGES_SAVE_DIR}/{filename}"
+        return None
+
+    def is_pulled(self, image_name: str) -> bool:
+        return self.get_image_path(image_name) is not None
 
 
 def command_pull(image_name: str):
@@ -63,25 +72,39 @@ def command_pull(image_name: str):
     print(f"[+] Pulling image: '{image_name}' into '{IMAGES_SAVE_DIR}/{image_name}'")
 
     try:
-        retrieved_image = urllib.request.urlretrieve(image["url"])[0]
-        image_tar = tarfile.open(retrieved_image)
-        image_tar.extractall(pull_path)
-        os.remove(retrieved_image)
+        urllib.request.urlretrieve(url=image["url"], filename=f"{pull_path}.tar.gz")[0]
     except:
         print("[!] ERROR: Retrieving image")
 
 
-def command_new():
-    pass
+def command_new(image_name: str, new_image_path: str):
+    pulled_images = PulledImages()
+    image_path = pulled_images.get_image_path(image_name)
+
+    if image_path is None:
+        print(f"[!] ERROR: Image not pulled: {image_name}")
+        exit(1)
+
+    if new_image_path is None:
+        new_image_path = image_name
+
+    print(f"[+] Creating new instance of '{image_name}' at '{new_image_path}'")
+
+    try:
+        image_tar = tarfile.open(image_path)
+        image_tar.extractall(new_image_path)
+    except:
+        print("[!] ERROR: Instancing a new image")
+        exit(1)
 
 
 def command_list():
     index = ImageIndex()
-    pulled_images = get_pulled_images()
+    pulled_images = PulledImages()
     for image in index.get_images():
         name = image["name"]
         version = image["version"]
-        pulled = " [pulled]" if name in pulled_images else ""
+        pulled = " [pulled]" if pulled_images.is_pulled(name) else ""
         print(f"{name} (v{version}){pulled}")
 
 
@@ -97,15 +120,19 @@ def main():
     subcom_pull.add_argument("image_name")
 
     subcom_new = subparsers.add_parser("new")
+    subcom_new.add_argument("image_name")
+    subcom_new.add_argument("path", nargs="?")
 
-    subcom_list = subparsers.add_parser("list")
+    subparsers.add_parser("list")
+
+    # TODO: subcommand: remove image
 
     args = parser.parse_args()
 
     if args.subcommands == "pull":
         command_pull(args.image_name)
     elif args.subcommands == "new":
-        command_new()
+        command_new(args.image_name, args.path)
     elif args.subcommands == "list":
         command_list()
     else:
