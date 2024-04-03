@@ -15,8 +15,8 @@ class ImageIndex:
     def __init__(self):
         self.index = json.loads(
             urllib.request.urlopen(
-                # "https://raw.githubusercontent.com/Ernest1338/nspawn-registry/main/index.json"
-                "http://localhost:8080/index.json"
+                "https://raw.githubusercontent.com/Ernest1338/nspawn-registry/main/index.json"
+                # "http://localhost:8080/index.json"
             )
             .read()
             .decode()

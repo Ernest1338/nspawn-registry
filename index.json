@@ -2,7 +2,7 @@
   {
     "name": "alpine",
     "version": "3.19",
-    "url": "http://localhost:8080/images/alpine-v3.19.tar.gz"
+    "url": "https://github.com/Ernest1338/nspawn-registry/releases/download/alpine/alpine-v3.19.tar.gz"
   },
   {
     "name": "arch",
