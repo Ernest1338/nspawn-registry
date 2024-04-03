@@ -129,9 +129,11 @@ def command_rm(image_name: str):
     os.remove(image_path)
 
 
-def command_list():
+def command_list(only_print_locally_pulled: bool):
     index = ImageIndex()
     pulled_images = PulledImages()
+    out = ""
+
     for image in index.get_images():
         name = image["name"]
         version = image["version"]
@@ -140,43 +142,55 @@ def command_list():
             if pulled_images.is_pulled(name)
             else ""
         )
-        print(f"{name}\t(v{version}){pulled}")
+        if only_print_locally_pulled:
+            if pulled != "":
+                out += f"{name}\t(v{version}){pulled}\n"
+        else:
+            out += f"{name}\t(v{version}){pulled}\n"
+
+    print(out.strip() if out != "" else "No images to list")
 
 
 def main():
     parser = argparse.ArgumentParser(
         prog="nspawn-cli",
         description="systemd-nspawn registry CLI",
+        epilog=f"Local registry path: {IMAGES_SAVE_DIR}",
     )
 
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommands")
 
     subcom_pull = subparsers.add_parser(
-        "pull", help=f"Pull image into {IMAGES_SAVE_DIR}"
+        "pull", help="pull given image (into local registry)"
     )
     subcom_pull.add_argument("image_name")
 
-    subcom_new = subparsers.add_parser("new", help="Instantiate new image at give path")
+    subcom_new = subparsers.add_parser("new", help="instantiate new image at give path")
     subcom_new.add_argument("image_name")
     subcom_new.add_argument("path", nargs="?")
 
     subcom_rm = subparsers.add_parser(
-        "rm", help="Remove given image from local registry"
+        "rm", help="remove given image from local registry"
     )
     subcom_rm.add_argument("image_name")
 
-    subparsers.add_parser("list")
+    subcom_list = subparsers.add_parser(
+        "list", help="list images present in the registry"
+    )
+    subcom_list.add_argument(
+        "--local", help="only list locally pulled images", action="store_true"
+    )
 
     args = parser.parse_args()
 
     if args.subcommands == "pull":
-        command_pull(args.image_name)
+        command_pull(image_name=args.image_name)
     elif args.subcommands == "new":
-        command_new(args.image_name, args.path)
+        command_new(image_name=args.image_name, image_path=args.path)
     elif args.subcommands == "rm":
-        command_rm(args.image_name)
+        command_rm(image_name=args.image_name)
     elif args.subcommands == "list":
-        command_list()
+        command_list(only_print_locally_pulled=args.local)
     else:
         parser.print_usage()
 
