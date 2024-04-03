@@ -41,7 +41,7 @@ def build_image():
 
     dir = tempfile.TemporaryDirectory(prefix="nspawn-registry-", dir="/tmp")
 
-    os.system(
+    execute(
         f'wget -qO- {MIRROR}/{VERSION}/{CHANNEL}/{GUESTARCH}/apk-tools-static-{get_apk_tools_version()}.apk \
     | tar -xz -C {dir.name} || \
     {{ echo "Couldnt download apk-tools, the version might have changed..."; exit 1; }}'
