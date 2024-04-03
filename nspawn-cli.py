@@ -186,7 +186,7 @@ def main():
     if args.subcommands == "pull":
         command_pull(image_name=args.image_name)
     elif args.subcommands == "new":
-        command_new(image_name=args.image_name, image_path=args.path)
+        command_new(image_name=args.image_name, new_image_path=args.path)
     elif args.subcommands == "rm":
         command_rm(image_name=args.image_name)
     elif args.subcommands == "list":

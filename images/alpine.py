@@ -5,6 +5,8 @@ import os
 import tempfile
 import tarfile
 import shutil
+import urllib.request
+import re
 
 # FIXME: Do not require root (the apk.static exec requires it)
 # FIXME: Do not hard code apk-tools version
@@ -15,11 +17,10 @@ if os.getuid() != 0:
     exit(1)
 
 MIRROR = "http://dl-cdn.alpinelinux.org/alpine"
-VERSION = "latest-stable"
-APKTOOLS_VERSION = "2.14.3-r1"
-GUESTARCH = "x86"
+VERSION = "v3.19"
+GUESTARCH = "x86_64"
 CHANNEL = "main"
-DESTINATION = sys.argv[1] if len(sys.argv) > 1 else "alpine-linux-image"
+DESTINATION = sys.argv[1] if len(sys.argv) > 1 else f"alpine-{VERSION}"
 
 
 def execute(cmd):
@@ -27,10 +28,21 @@ def execute(cmd):
     os.system(cmd)
 
 
+def get_apk_tools_version():
+    contents = (
+        urllib.request.urlopen(f"{MIRROR}/{VERSION}/{CHANNEL}/{GUESTARCH}")
+        .read()
+        .decode()
+    )
+    pattern = r"(?<=apk-tools-static-)([0-9\.]*-r\d)"
+    matches = re.findall(pattern, contents)
+    return matches[0] if matches else exit(1)
+
+
 dir = tempfile.TemporaryDirectory(prefix="nspawn-registry-", dir="/tmp")
 
 os.system(
-    f'wget -qO- {MIRROR}/{VERSION}/{CHANNEL}/{GUESTARCH}/apk-tools-static-{APKTOOLS_VERSION}.apk \
+    f'wget -qO- {MIRROR}/{VERSION}/{CHANNEL}/{GUESTARCH}/apk-tools-static-{get_apk_tools_version()}.apk \
 | tar -xz -C {dir.name} || \
 {{ echo "Couldnt download apk-tools, the version might have changed..."; exit 1; }}'
 )
@@ -59,6 +71,9 @@ execute(
     f'printf "console::respawn:/sbin/getty 38400 console\n" >> "{DESTINATION}"/etc/inittab'
 )
 
+for s in ["console", "null", "random", "urandom", "zero"]:
+    execute(f'rm {DESTINATION}/dev/{s}')
+
 for s in ["hostname", "bootmisc", "syslog"]:
     execute(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/boot/{s}')
 
@@ -66,11 +81,11 @@ for s in ["hostname", "bootmisc", "syslog"]:
 for s in ["killprocs", "savecache"]:
     execute(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/shutdown/{s}')
 
-print(f"\n[+] Successfully built alpine {VERSION} at: {DESTINATION}")
-
 with tarfile.open(f"{DESTINATION}.tar.gz", "w:gz") as tar:
     tar.add(DESTINATION, arcname=".")
 
 shutil.rmtree(DESTINATION)
+
+print(f"\n[+] Successfully built alpine {VERSION} at: {DESTINATION}.tar.gz")
 
 dir.cleanup()

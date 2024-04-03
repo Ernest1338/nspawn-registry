@@ -1,8 +1,8 @@
 [
   {
     "name": "alpine",
-    "version": "1.0",
-    "url": "http://localhost:8080/alpine.tar.gz"
+    "version": "3.19",
+    "url": "http://localhost:8080/images/alpine-v3.19.tar.gz"
   },
   {
     "name": "arch",
