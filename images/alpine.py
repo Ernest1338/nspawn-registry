@@ -3,15 +3,20 @@
 import sys
 import os
 import tempfile
+import tarfile
+import shutil
 
-# NOTE: maybe there is a way to not require root? (the apk.static exec requires it)
+# FIXME: Do not require root (the apk.static exec requires it)
+# FIXME: Do not hard code apk-tools version
+# FIXME: Extract system version + append to out file name
+
 if os.getuid() != 0:
     print("Run this script as root")
     exit(1)
 
 MIRROR = "http://dl-cdn.alpinelinux.org/alpine"
 VERSION = "latest-stable"
-APKTOOLS_VERSION = "2.14.0-r5"
+APKTOOLS_VERSION = "2.14.3-r1"
 GUESTARCH = "x86"
 CHANNEL = "main"
 DESTINATION = sys.argv[1] if len(sys.argv) > 1 else "alpine-linux-image"
@@ -62,5 +67,10 @@ for s in ["killprocs", "savecache"]:
     execute(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/shutdown/{s}')
 
 print(f"\n[+] Successfully built alpine {VERSION} at: {DESTINATION}")
+
+with tarfile.open(f"{DESTINATION}.tar.gz", "w:gz") as tar:
+    tar.add(DESTINATION, arcname=".")
+
+shutil.rmtree(DESTINATION)
 
 dir.cleanup()
