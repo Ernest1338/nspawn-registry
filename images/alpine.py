@@ -8,10 +8,7 @@ import shutil
 import urllib.request
 import re
 
-# FIXME: Do not require root (the apk.static exec requires it)
-# FIXME: Do not hard code apk-tools version
-# FIXME: Extract system version + append to out file name
-
+# TODO: Find a way to require root (the apk.static exec requires it)
 if os.getuid() != 0:
     print("Run this script as root")
     exit(1)
