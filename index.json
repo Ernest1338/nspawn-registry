@@ -6,22 +6,7 @@
   },
   {
     "name": "arch",
-    "version": "1.0",
-    "url": "http://localhost:8080/alpine.tar.gz"
-  },
-  {
-    "name": "debian",
-    "version": "1.0",
-    "url": "http://localhost:8080/alpine.tar.gz"
-  },
-  {
-    "name": "ubuntu",
-    "version": "1.0",
-    "url": "http://localhost:8080/alpine.tar.gz"
-  },
-  {
-    "name": "nginx",
-    "version": "1.0",
-    "url": "http://localhost:8080/alpine.tar.gz"
+    "version": "2024.04.01",
+    "url": "https://github.com/Ernest1338/nspawn-registry/releases/download/arch/arch-v2024.04.01.tar.gz"
   }
 ]
