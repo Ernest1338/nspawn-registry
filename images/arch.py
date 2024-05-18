@@ -8,7 +8,7 @@ import shutil
 
 
 # NOTE: maybe a better mirror?
-MIRROR = "http://mirror.fra10.de.leaseweb.net/archlinux"
+MIRROR = "https://mirroronet.pl/pub/mirrors/archlinux"
 VERSION = "latest"
 PKG_GROUPS = "base"
 
@@ -28,15 +28,15 @@ def build_image():
 
     dir = tempfile.TemporaryDirectory(prefix="nspawn-registry-", dir="/tmp")
 
-    # wget_or_curl "$MIRROR/iso/$ISO_DATE/archlinux-bootstrap-x86_64.tar.gz" $tarfile
+    # wget_or_curl "$MIRROR/iso/$ISO_DATE/archlinux-bootstrap-x86_64.tar.zst" $tarfile
     execute(
-        f"wget '{MIRROR}/iso/{VERSION}/archlinux-bootstrap-x86_64.tar.gz' -O {dir.name}/arch.tar.gz "
+        f"wget '{MIRROR}/iso/{VERSION}/archlinux-bootstrap-x86_64.tar.zst' -O {dir.name}/arch.tar.zst"
     )
 
     execute(f"mkdir -p {DESTINATION}")
 
     execute(
-        f"tar -xzf {dir.name}/arch.tar.gz -C {DESTINATION} --strip-components=1 --numeric-owner"
+        f"tar --zstd -xvf {dir.name}/arch.tar.zst -C {DESTINATION} --strip-components=1 --numeric-owner"
     )
 
     # configure mirror
@@ -63,7 +63,14 @@ def build_image():
         f"""systemd-nspawn -q -D '{DESTINATION}' sh -c '
         pacman-key --init &&
         pacman-key --populate &&
-        pacman -Sy --noconfirm --needed {PKG_GROUPS}'"""
+        pacman -Syu --noconfirm --needed {PKG_GROUPS}'"""
+    )
+
+    # clean up pacman cache and unnecessary files
+    execute(
+        f"""systemd-nspawn -q -D '{DESTINATION}' sh -c '
+        rm -rf /var/cache/pacman/pkg/* &&
+        rm -rf /var/lib/pacman/sync/*'"""
     )
 
     with tarfile.open(f"{DESTINATION}.tar.gz", "w:gz") as tar:
