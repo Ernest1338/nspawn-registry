@@ -80,6 +80,9 @@ def build_image():
     for s in ["killprocs", "savecache"]:
         execute(f'ln -s /etc/init.d/{s} "{DESTINATION}"/etc/runlevels/shutdown/{s}')
 
+    # make all the files be owned by root
+    execute(f'chown -R root:root {DESTINATION}')
+
     with tarfile.open(f"{DESTINATION}.tar.gz", "w:gz") as tar:
         tar.add(DESTINATION, arcname=".")
 

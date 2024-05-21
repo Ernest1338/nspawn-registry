@@ -73,6 +73,9 @@ def build_image():
         rm -rf /var/lib/pacman/sync/*'"""
     )
 
+    # make all the files be owned by root
+    execute(f'chown -R root:root {DESTINATION}')
+
     with tarfile.open(f"{DESTINATION}.tar.gz", "w:gz") as tar:
         print("[PACKING INTO FINAL TAR FILE] NOTE: This will take a while")
         tar.add(DESTINATION, arcname=".")
