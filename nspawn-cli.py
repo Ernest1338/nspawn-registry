@@ -109,7 +109,7 @@ def command_new(image_name: str, new_image_path: str):
     print(f"[+] Creating new instance of '{image_name}' at '{new_image_path}'")
 
     os.system(f"mkdir {new_image_path}")
-    os.system(f"sudo tar --same-owner -xzvf {image_path} -C {new_image_path}")
+    os.system(f"sudo tar --same-owner -xzf {image_path} -C {new_image_path}")
 
 
 def command_rm(image_name: str):
