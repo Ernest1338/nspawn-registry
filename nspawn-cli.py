@@ -3,7 +3,6 @@
 import argparse
 import json
 import os
-import tarfile
 
 import urllib.request
 
@@ -109,12 +108,8 @@ def command_new(image_name: str, new_image_path: str):
 
     print(f"[+] Creating new instance of '{image_name}' at '{new_image_path}'")
 
-    try:
-        image_tar = tarfile.open(image_path)
-        image_tar.extractall(new_image_path)
-    except:
-        print("[!] ERROR: Instancing a new image")
-        exit(1)
+    os.system(f"mkdir {new_image_path}")
+    os.system(f"sudo tar --same-owner -xzvf {image_path} -C {new_image_path}")
 
 
 def command_rm(image_name: str):
