@@ -8,7 +8,7 @@ import shutil
 
 
 # NOTE: maybe a better mirror?
-MIRROR = "https://mirroronet.pl/pub/mirrors/archlinux"
+MIRROR = "https://mirror.rackspace.com/archlinux"
 VERSION = "latest"
 PKG_GROUPS = "base"
 
