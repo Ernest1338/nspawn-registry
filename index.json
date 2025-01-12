@@ -1,8 +1,8 @@
 [
   {
     "name": "alpine",
-    "version": "3.19",
-    "url": "https://github.com/Ernest1338/nspawn-registry/releases/download/alpine/alpine-v3.19.tar.gz"
+    "version": "3.21",
+    "url": "https://github.com/Ernest1338/nspawn-registry/releases/download/alpine/alpine-v3.21.tar.gz"
   },
   {
     "name": "arch",

@@ -10,7 +10,7 @@ import re
 
 
 MIRROR = "http://dl-cdn.alpinelinux.org/alpine"
-VERSION = "v3.19"
+VERSION = "v3.21"
 GUESTARCH = "x86_64"
 CHANNEL = "main"
 
